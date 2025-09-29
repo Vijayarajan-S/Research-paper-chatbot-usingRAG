@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Research Paper Chatbot</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            animation: slideInUp 0.8s ease-out;
+        }
+
+        @keyframes slideInUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            color: white;
+            font-size: 2.5rem;
+            font-weight: 300;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            animation: fadeInDown 1s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .section {
+            padding: 30px;
+            position: relative;
+        }
+
+        .section:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 30px;
+            right: 30px;
+            height: 1px;
+            background: linear-gradient(to right, transparent, #e0e0e0, transparent);
+        }
+
+        h2 {
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            font-weight: 500;
+            opacity: 0;
+            animation: fadeIn 1s ease-out 0.3s forwards;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        #upload-form {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            margin-bottom: 15px;
+            opacity: 0;
+            animation: fadeIn 1s ease-out 0.5s forwards;
+        }
+
+        input[type="file"] {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px dashed #cbd5e0;
+            border-radius: 12px;
+            background: #f7fafc;
+            color: #4a5568;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        input[type="file"]:hover {
+            border-color: #4facfe;
+            background: #ebf8ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 172, 254, 0.2);
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 16px 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            background: #f7fafc;
+            color: #2d3748;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #4facfe;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+            transform: translateY(-1px);
+        }
+
+        button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        button:hover::before {
+            left: 100%;
+        }
+
+        button:active {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        #upload-status, .answer-status {
+            margin-top: 15px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+        }
+
+        #upload-status.show, .answer-status.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .status.success {
+            color: #38a169;
+            background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%);
+            border-left: 4px solid #38a169;
+        }
+
+        .status.error {
+            color: #e53e3e;
+            background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+            border-left: 4px solid #e53e3e;
+        }
+
+        #answer {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            border: 2px solid #e2e8f0;
+            min-height: 60px;
+            font-size: 16px;
+            line-height: 1.6;
+            color: #2d3748;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #answer.loading {
+            background: linear-gradient(135deg, #ebf8ff 0%, #bee3f8 100%);
+            border-color: #4facfe;
+        }
+
+        #answer.loading::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(79, 172, 254, 0.2), transparent);
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+
+        .question-container {
+            opacity: 0;
+            animation: fadeIn 1s ease-out 0.7s forwards;
+        }
+
+        .chat-icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+            vertical-align: middle;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>') no-repeat center center;
+            background-size: contain;
+        }
+
+        .upload-icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+            vertical-align: middle;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>') no-repeat center center;
+            background-size: contain;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .section {
+                padding: 20px;
+            }
+            
+            #upload-form {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+
+        /* Loading animation for thinking state */
+        .thinking {
+            position: relative;
+        }
+
+        .thinking::after {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: #4facfe;
+            animation: thinking 1.4s ease-in-out infinite both;
+            margin-left: 8px;
+        }
+
+        @keyframes thinking {
+            0%, 80%, 100% {
+                opacity: 0;
+                transform: scale(0);
+            }
+            40% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><span class="upload-icon"></span>RAG Chatbot</h1>
+        </div>
+        
+        <div class="section">
+            <h2><span class="upload-icon"></span>Upload PDF</h2>
+            <form id="upload-form" enctype="multipart/form-data">
+                <input type="file" name="pdf" accept="application/pdf">
+                <button type="submit">Upload</button>
+            </form>
+            <div id="upload-status" class="status"></div>
+        </div>
+
+        <div class="section">
+            <div class="question-container">
+                <h2><span class="chat-icon"></span>Ask a Question</h2>
+                <input type="text" id="question" placeholder="Type your question here...">
+                <button id="ask-btn">Ask</button>
+                <div id="answer"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Helper function to show status messages
+        function showStatus(message, type="success", targetId="upload-status") {
+            const statusEl = document.getElementById(targetId);
+            statusEl.innerText = message;
+            statusEl.className = `status ${type} show`;
+            
+            // Auto-hide after 5 seconds for success messages
+            if (type === "success") {
+                setTimeout(() => {
+                    statusEl.classList.remove('show');
+                }, 5000);
+            }
+        }
+
+        // PDF Upload
+        const uploadForm = document.getElementById("upload-form");
+        uploadForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const fileInput = uploadForm.querySelector('input[name="pdf"]');
+            if (!fileInput.files || fileInput.files.length === 0) {
+                showStatus("Please select a PDF file first.", "error");
+                return;
+            }
+
+            const formData = new FormData(uploadForm);
+            showStatus("Uploading PDF...", "success");
+
+            try {
+                const res = await fetch("/upload", { method: "POST", body: formData });
+                const data = await res.json();
+
+                if (res.ok) {
+                    showStatus(data.message || "Document uploaded successfully!", "success");
+                    uploadForm.reset();
+                } else {
+                    showStatus(data.message || "Upload failed.", "error");
+                }
+            } catch (err) {
+                showStatus("Network error. Please check your connection.", "error");
+            }
+        });
+
+        // Chat / Ask Question
+        const askBtn = document.getElementById("ask-btn");
+        const questionInput = document.getElementById("question");
+        
+        // Allow Enter key to submit question
+        questionInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                askBtn.click();
+            }
+        });
+        
+        askBtn.addEventListener("click", async () => {
+            const question = questionInput.value.trim();
+            if (!question) {
+                const answerEl = document.getElementById("answer");
+                answerEl.innerHTML = '<div class="answer-status error show">Type a question!</div>';
+                return;
+            }
+
+            const answerEl = document.getElementById("answer");
+            answerEl.className = "loading";
+            answerEl.innerHTML = '<span class="thinking">Thinking</span>';
+
+            try {
+                const res = await fetch("/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ question })
+                });
+
+                const data = await res.json();
+                answerEl.classList.remove("loading");
+
+                if (data.status === "success") {
+                    answerEl.innerText = data.answer;
+                } else {
+                    answerEl.innerHTML = `<div class="answer-status error show">${data.message || "Error retrieving answer."}</div>`;
+                }
+            } catch (err) {
+                answerEl.classList.remove("loading");
+                answerEl.innerHTML = '<div class="answer-status error show">Network error. Please check your connection.</div>';
+            }
+        });
+    </script>
+</body>
+</html>
